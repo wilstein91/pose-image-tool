@@ -1,0 +1,11 @@
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / 구글 드라이브
+.DS_Store
+Thumbs.db
+desktop.ini
