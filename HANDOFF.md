@@ -152,8 +152,10 @@ FLUX.2 klein 용 OpenPose ControlNet이 2026년 9월 기준 아직 없다.
 | `POSE_STRICTNESS` | `"normal"` | 자세 엄격도. `strict` / `normal` / `loose` |
 | `SEED` | 12345 | 같은 값 = 같은 그림 |
 
-결과는 `outputs/result_seed{SEED}_{POSE_STRICTNESS}_s{STEPS}_g{GUIDANCE}.png` 로 저장된다.
+결과는 `outputs/output_{번호}_seed{SEED}_{POSE_STRICTNESS}_s{STEPS}_g{GUIDANCE}.png` 로 저장된다.
+앞의 번호는 STEP 3-1의 `PICK` 을 따라간다 (`PICK = 0` -> `output_01`). 3-2(URL)로 넣으면 번호 없이 `output`.
 같은 이름이 있으면 `-1`, `-2` 가 붙어 덮어쓰지 않는다.
+9-1의 `WITH_SETTINGS = False` 로 바꾸면 `output_01.png` 처럼 번호만 남는다.
 
 ---
 
