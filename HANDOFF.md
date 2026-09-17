@@ -119,7 +119,7 @@ FLUX.2 klein 용 OpenPose ControlNet이 2026년 9월 기준 아직 없다.
 | `RuntimeError: OpenPose 모델이 메모리에 없습니다` | STEP 6-3이 RAM 확보를 위해 내림 (의도된 동작) | STEP 5-1 다시 실행 |
 | `ComfyUI 서버가 뜨지 않았습니다` | 설치 실패 또는 메모리 부족 | 셀이 찍어 주는 로그를 읽을 것. 대개 STEP 1-1 재실행 |
 | `없는 부품: ['UnetLoaderGGUF']` | GGUF 커스텀 노드 미설치 | STEP 1-1 → 6-3 순서로 재실행 |
-| 결과에 알록달록 뼈대 선이 그대로 | 모델이 참조 이미지를 베낌 | `POSE_STRICTNESS` 낮추고 프롬프트 끝에 `Clean photographic scene, no diagram lines.` |
+| 결과에 알록달록 뼈대 선이 그대로 | 지시 문장이 '골격'으로 시작해 모델이 그릴 대상으로 오해 | **수정됨** — 지시 순서를 `[장면] -> [자세] -> [도면 금지]` 로 바꿈. 그래도 나오면 `POSE_STRICTNESS` 를 내리고 프롬프트를 `A photograph of ...` 로 시작 |
 | 네거티브 프롬프트가 안 먹음 | **정상.** distilled 모델 + `GUIDANCE=1.0` | 프롬프트 안에 문장으로 쓰거나 `GUIDANCE` 를 1.5~3.0 으로 |
 
 **ComfyUI 로그 보는 법** — 새 셀에 `print(open("/content/comfyui.log").read()[-3000:])`
@@ -152,10 +152,15 @@ FLUX.2 klein 용 OpenPose ControlNet이 2026년 9월 기준 아직 없다.
 | `POSE_STRICTNESS` | `"normal"` | 자세 엄격도. `strict` / `normal` / `loose` |
 | `SEED` | 12345 | 같은 값 = 같은 그림 |
 
-결과는 `outputs/output_{번호}_seed{SEED}_{POSE_STRICTNESS}_s{STEPS}_g{GUIDANCE}.png` 로 저장된다.
-앞의 번호는 STEP 3-1의 `PICK` 을 따라간다 (`PICK = 0` -> `output_01`). 3-2(URL)로 넣으면 번호 없이 `output`.
+결과는 `outputs/output_01.png` 처럼 **사진 번호만으로** 저장된다.
+번호는 STEP 3-1의 `PICK` 을 따라간다 (`PICK = 0` -> `output_01`). 3-2(URL)로 넣으면 번호 없이 `output`.
 같은 이름이 있으면 `-1`, `-2` 가 붙어 덮어쓰지 않는다.
-9-1의 `WITH_SETTINGS = False` 로 바꾸면 `output_01.png` 처럼 번호만 남는다.
+
+이름에 설정이 없으므로 9-1이 재현용 값(seed·strictness·steps·cfg·크기·프롬프트)을 화면에 찍는다.
+좋은 결과는 그 줄을 `prompts.md` 로 옮길 것.
+
+**저장 폴더는 구글 드라이브다.** Colab에서 C드라이브가 보이지 않아 그리로 쓸 방법이 없다.
+9-1이 G -> C 복사용 `Copy-Item` 한 줄을 같이 찍어 준다.
 
 ---
 
