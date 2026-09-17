@@ -169,9 +169,31 @@ FLUX.2 klein 용 OpenPose ControlNet이 2026년 9월 기준 아직 없다.
 | 위치 | 역할 |
 | --- | --- |
 | `C:\Aiffel_Work\pose-image-tool` | **git 작업 폴더.** 깃허브에 푸시하는 곳 |
-| `G:\내 드라이브\Aiffel_Work\pose-image-tool` | 구글 드라이브 사본. Colab이 여기서 사진을 읽고 결과를 쓴다 |
+| `<드라이브>:\Aiffel_Work\pose-image-tool` | 구글 드라이브 사본. Colab이 여기서 사진을 읽고 결과를 쓴다 |
+
+> **드라이브 문자를 외우지 말 것.** 예전 메모에는 `G:` 로 적혀 있었지만
+> 2026-09-17 기준 이 PC 에서는 **`X:`** 로 잡힌다. 구글 드라이브는 드라이브 문자와
+> 마운트 모양(`X:\Aiffel_Work` vs `G:\내 드라이브\Aiffel_Work`)이 수시로 바뀐다.
+> 그래서 노트북과 아래 명령은 문자를 적지 않고 **찾아내는** 방식을 쓴다.
+
+```powershell
+# 지금 구글 드라이브가 어느 문자로 잡혔는지 확인
+Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -ne 'C' } |
+  ForEach-Object { Join-Path $_.Root 'Aiffel_Work\pose-image-tool' } |
+  Where-Object { Test-Path $_ }
+```
 
 구글 드라이브 동기화 폴더 안에 `.git` 을 두면 충돌이 나므로 **git은 C에만** 둔다.
+
+### C 와 드라이브 사이에 무엇을 옮겨야 하나
+
+| 방향 | 무엇을 | 왜 |
+| --- | --- | --- |
+| **드라이브 -> C** | `outputs/` | Colab이 결과를 드라이브에 쓴다. 깃허브에 올리려면 C로 가져와야 함 |
+| **C -> 드라이브** | `samples/` | 새 참조 사진을 C에만 넣으면 **Colab에서 보이지 않는다** |
+| (선택) **C -> 드라이브** | `pose_tool.ipynb`, `*.md` | VS Code로 C에서 여는 한 불필요. 드라이브에서 직접 열고 싶을 때만 |
+
+두 방향 모두 STEP 7-4 설명에 붙여넣을 명령이 적혀 있다.
 
 노트북 STEP 3-1은 내 드라이브 아래에서 `pose-image-tool` 폴더를 **3단계 깊이까지 자동으로 찾는다.**
 
