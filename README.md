@@ -1,69 +1,36 @@
-# 원하는 포즈로 이미지 만드는 도구 (vFLUX2 브랜치)
+# 원하는 포즈로 이미지 만드는 도구
 
 ## 도구 설명
-- 참조 사진에서 인물의 **자세(관절 구조)만** 뽑아내고, 인물·의상·배경·화풍은 프롬프트대로 새로 그려주는 Colab 노트북입니다.
-- **OpenPose로 자세를 뽑고, [FLUX.2 [klein] 4B](https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-fp8) 로 그립니다.** 생성 엔진은 ComfyUI를 화면 없이 백그라운드로 띄워 씁니다.
-- 무료 Colab T4 GPU에서 한 장에 30~90초 걸립니다.
-
-> **브랜치 안내** — `main` 은 Stable Diffusion 1.5 + ControlNet(OpenPose) 버전이고, 이 `vFLUX2` 브랜치는 생성 모델만 FLUX.2로 교체한 버전입니다. 자세 추출(STEP 0~5)은 두 브랜치가 같습니다.
-
-## main 브랜치와 무엇이 다른가
-
-| | `main` (SD 1.5 + ControlNet) | `vFLUX2` (FLUX.2 klein 4B) |
-| --- | --- | --- |
-| 자세를 넘기는 방식 | ControlNet이 매 생성 단계마다 강제 | 스켈레톤을 **참조 이미지**로 제시 + 지시 문장 |
-| 자세 정확도 | **매우 높음** | 높지만 완벽하지 않음 |
-| 자세 세기 조절 | `POSE_STRENGTH` (0.8~1.2) | `POSE_STRICTNESS` (`strict`/`normal`/`loose`) |
-| 그림 품질·손 | 보통 | **확연히 좋음** |
-| 프롬프트 | 단어 나열, 약 77토큰 제한 | **영어 문장**, 길이 제한 넉넉 |
-| 네거티브 프롬프트 | 항상 작동 | `GUIDANCE > 1.0` 일 때만 작동 (아래 참고) |
-| 생성 단계 수 | 30 | **4** (distilled 모델) |
-| 첫 준비 시간 | 6~9분 | **20~30분** (모델 약 11GB) |
-| 한 장 생성 | 10~20초 | 30~90초 |
-
-**자세 정확도가 최우선이면 `main`, 그림 품질이 최우선이면 `vFLUX2`** 를 쓰면 됩니다.
+- 참조 사진으로부터 OpenPose를 통해 인물의 **자세(관절 구조)만** 뽑아내고, 인물·의상·배경·화풍은 프롬프트대로 새로 그려주는 Colab 노트북임.
+- OpenPose로 자세를 뽑고 FLUX.2 [klein] 4B로 그림. 무료 Colab T4에서 한 장에 30~90초 걸림.
 
 ## 사용법
-1. `pose_tool.ipynb` 를 Colab에서 엽니다. (구글 드라이브에서 파일 우클릭 → 연결 프로그램 → Google Colaboratory) 연 뒤 **런타임 → 런타임 유형 변경 → T4 GPU** 로 설정합니다.
-2. STEP 0부터 아래로 순서대로 실행합니다. STEP 3에서 참조 사진을 지정하고, STEP 5에서 뽑힌 스켈레톤이 원본 자세와 닮았는지 확인한 뒤, **STEP 6에서 모델을 받고(첫 실행 15~25분), STEP 7에서 프롬프트만 바꿔** STEP 8에서 생성합니다.
-3. 결과는 `outputs/` 에 **`output_01.png`** 처럼 사진 번호만으로 저장됩니다. 번호는 STEP 3-1의 `PICK` 을 따라갑니다 (`PICK = 0` → `output_01`). 같은 사진으로 또 만들면 `-1`, `-2` 가 붙어 덮어쓰지 않습니다. 재현에 필요한 seed·설정은 9-1이 화면에 찍어 주니 `prompts.md` 에 옮겨 두세요.
+1. 구글 드라이브에서 `pose_tool.ipynb` 를 우클릭 → 연결 프로그램 → Google Colaboratory 로 열기. 연 뒤 **런타임 → 런타임 유형 변경 → T4 GPU** 로 설정.
 
-> **저장 폴더는 구글 드라이브(G)입니다.** 코드가 구글 서버에서 돌아 C드라이브가 보이지 않기 때문입니다. git 폴더(C)로 옮기려면 9-1이 같이 찍어 주는 `Copy-Item` 한 줄을 PowerShell에서 실행하세요.
+2. STEP 0부터 순서대로 실행. STEP 3에서 참조 사진을 고르고, STEP 5에서 뽑힌 스켈레톤이 원본 자세와 닮았는지 확인한 뒤, STEP 6에서 모델을 받고(첫 실행 15~25분), STEP 7에서 프롬프트를 쓰고 STEP 8에서 생성. 한 바퀴 돈 뒤, 수정사항 발생 시 **STEP 7-3 → 8-1 → 9-1** 세 칸만 반복.
 
-한 바퀴 돌린 뒤에는 **STEP 7-3 → 8-1 → 9-1 세 칸만** 반복하면 됩니다.
-
-## 구성 요소
-
-| 역할 | 파일 | 크기 |
-| --- | --- | --- |
-| 디퓨전 모델 | `flux-2-klein-4b-Q4_K_M.gguf` (GGUF Q4 양자화) | 2.6GB |
-| 텍스트 인코더 | `qwen_3_4b.safetensors` (Qwen3-4B) | 8.0GB |
-| VAE | `flux2-vae.safetensors` | 0.34GB |
-| 자세 추출 | `controlnet_aux` OpenposeDetector + `lllyasviel/Annotators` | 0.2GB |
-| 생성 엔진 | ComfyUI + [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF) | — |
-
-STEP 6-1의 `USE_GGUF = False` 로 바꾸면 압축 대신 fp8 원본(4.1GB)을 씁니다. 품질이 조금 올라가지만 메모리를 더 씁니다.
+3. 결과는 구글 드라이브 쪽 `outputs/` 폴더에 `output_01.png` 처럼 사진 번호로 저장됨. 번호는 STEP 3-1의 `PICK` 을 따라가고, 같은 이름이 있으면 `-1`, `-2` 가 붙음.
 
 ## 테스트 결과
+- 포즈 1: 기구에 등을 대고 누운 자세 
 
-**2026-09-17, 무료 Colab T4에서 전체 파이프라인 정상 동작 확인.** 결과 2장 생성 성공.
+    → 프롬프트: `An athlete jumping over the moon, belly facing up, dramatic pose, dreamy lighting, bright moonlight, fantasy concept art style` 
 
-| 참조 사진 | 결과 | 평가 |
-| --- | --- | --- |
-| `samples/pose_01.png` (기구에 등을 대고 누운 자세) | `outputs/output_01.png` | **잘 됨.** 달을 배경으로 수평으로 뜬 인물. 자세가 원본을 따라감 |
-| `samples/pose_02.png` (서 있는 전신 자세) | `outputs/output_02.png` | **잘 됨.** 애니메이션 화풍의 서 있는 인물 |
-| `samples/pose_03.png` | *(미테스트)* | STEP 3-1에서 `PICK = 2` 로 선택 |
+    → 결과: 정상 출력. 초기 설정값때문에 목이 반대쪽으로 돌아간다거나 팔이 반대 방향으로 출력되는 이슈가 있었으나, prompt 지키는 수준을 strict로 올리니 보정 됨
 
-- **두 결과 모두 뼈대 선이 섞이지 않았습니다.** 알록달록한 막대기·점·검은 배경 없음.
-- **손과 얼굴이 무너지지 않습니다.** `main`(SD 1.5)에서 가장 자주 겪던 문제가 확연히 줄었습니다.
-- 두 장에 쓴 seed·설정은 기록되지 않았습니다. 그래서 STEP 9-1이 이제 재현용 값을 화면에 찍습니다.
-- 노트북 구조·워크플로우 조립 검증도 통과했습니다 (노드 연결·도달성, 크기 계산, 네거티브 분기, 공식 ComfyUI 템플릿과의 구조 대조).
+- 포즈 2: 서서 양손을 앞으로 모은 전신 자세 
+
+    → 프롬프트: `a young male waiting in front of a public restroom, holding his crotch, sweating, tense and anxious, comical and exaggerated, cartoon style` 
+
+    → 결과: 정상 출력. 인물은 만화풍, 배경은 현실 배경으로 작성되어서 추후에 prompt에 Cartoonstyle 추가하여 해결.
+- 포즈 3: 한 팔을 위로 들고 한쪽 무릎을 올린 자세 
+
+    → 프롬프트: `a young good looking female standing on top of the skyscraper's tip, wind blowing her hair, finger pointing, cinematic lighting, photographic` 
+
+    → 결과: 초도 이미지부터 정상 출력하였으나, seed 기능 확인을 위해 seed 변경만 한차례 진행.
 
 ## 한계
-- **자세가 100% 그대로 옮겨지지 않습니다.** FLUX.2 klein 용 OpenPose ControlNet이 아직 공개되지 않아, 스켈레톤을 "참조 이미지"로 보여 주고 말로 지시하는 방식을 씁니다. 팔다리 각도가 조금 어긋나는 정도는 정상 범위입니다. 어긋남이 크면 `POSE_STRICTNESS` 를 `"strict"` 로 올리세요.
-- **간혹 결과에 알록달록한 뼈대 선이 그대로 나옵니다.** 모델이 참조 도면을 그려야 할 대상으로 오해할 때 생깁니다. 지시 문장을 `[그릴 장면] → [자세만 가져와라] → [도면은 절대 그리지 마라]` 순서로 짜서 크게 줄였지만 완전히 없앨 수는 없습니다. 나오면 `POSE_STRICTNESS` 를 **내리고**(`strict`→`normal`→`loose`), 프롬프트를 `A photograph of ...` 로 시작하세요.
-- **네거티브 프롬프트가 기본 설정에서는 작동하지 않습니다.** klein 4B는 distilled(증류) 모델이라 `GUIDANCE = 1.0` 에서 네거티브 회로를 쓰지 않습니다. 올리면 작동하지만 약 2배 느려지고 결과가 나빠지기도 합니다. 피하고 싶은 것은 프롬프트 안에 문장으로 쓰는 편이 낫습니다.
-- **런타임이 끊기면 모델 11GB를 다시 받아야 합니다** (약 20분). 한 번 연결했을 때 실험을 몰아서 하세요.
-- **애니메이션·일러스트 참조는 관절 인식률이 낮습니다.** OpenPose가 실사 사진으로 학습된 모델이라, 머리가 크고 명암이 평평한 그림체에서 자세를 놓칩니다. (이 한계는 `main` 과 같습니다.)
-- **참조 사진의 소품은 따라오지 않습니다.** 관절 좌표만 넘어가므로, 의자나 기구가 필요하면 프롬프트에 직접 써야 합니다.
-- **가로로 긴 사진(16:9 등)은 인물이 작게 잡힙니다.** 노트북 STEP 5-4의 자동 크롭을 쓰세요.
+- FLUX.2용 OpenPose ControlNet이 아직 없어 스켈레톤을 Flux2에 참고 이미지로 제공하므로 자세가 100% 그대로 옮겨지지는 않음.
+- 네거티브 프롬프트가 기본 설정에서 작동하지 않음. distilled 모델이라 `GUIDANCE = 1.0` 에서는 무시됨.
+- Colab 런타임이 끊기면 모델 11GB를 다시 받아야 함. 용량은 큰데 다운속도는 제법 빠른 편임. 그래도 가급적 받은 자리에서 한번에 처리를 추천.
+- 애니메이션·일러스트 참조는 관절 인식률이 낮음. 드래곤볼 손오공 포즈 인식 못함. OpenPose가 실사 사진으로 학습된 모델이라 아무래도 실사쪽이 안정적.

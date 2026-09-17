@@ -23,13 +23,13 @@
 
 ## 2. 현재 상태 — **동작 확인됨**
 
-2026-09-17 저녁, **Colab T4에서 끝까지 정상 동작하는 것을 확인했다.** 결과 2장 생성 성공.
+2026-09-17 저녁, **Colab T4에서 끝까지 정상 동작하는 것을 확인했다.** 결과 3장 생성 성공.
 
 | 확인한 것 | 상태 |
 | --- | --- |
 | STEP 0~10 전체 파이프라인 | **정상** |
 | ComfyUI 백그라운드 기동 · 부품 16개 | **정상** |
-| 결과 생성 | **정상** — `outputs/output_01.png`, `outputs/output_02.png` |
+| 결과 생성 | **정상** — `samples/output_01.png` ~ `output_03.png` 3장 |
 | **결과에 뼈대 선이 섞이는 문제** | 두 장 모두 **깨끗함.** 막대기·점·검은 배경 없음 |
 | 자세 전이 품질 | 좋음. 누운 자세(01)·서 있는 자세(02) 모두 원본 자세를 따라감 |
 | 그림 품질 | `main`(SD 1.5)보다 확연히 좋음. 손·얼굴이 무너지지 않음 |
@@ -97,10 +97,10 @@ Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -ne 'C' } |
 
 | 우선순위 | 할 일 | 내용 |
 | --- | --- | --- |
-| **높음** | **`prompts.md` 갱신** | FLUX.2는 문장형 프롬프트라 기존 내용(단어 나열)이 안 맞음. 9-1이 찍어 주는 재현용 줄을 여기에 모을 것 |
-| **높음** | `pose_03.png` 로 돌려 보기 | 이번에 추가한 사진. STEP 3-1에서 `PICK = 2` |
+| **높음** | 실험할 때마다 `prompts.md` 에 기록 | 9-1이 찍어 주는 재현용 줄을 그때그때 옮길 것. 이걸 건너뛰어 `output_01` 의 seed를 영영 잃었다 |
+| 중간 | 참조 사진 추가 | 지금 3장. 새 사진은 C가 아니라 **드라이브의 `samples/`** 에 넣어야 STEP 3-1 목록에 뜬다 |
 | 중간 | 설정 실험 | `POSE_STRICTNESS` 3단계 비교, `STEPS` 4 vs 8 |
-| 중간 | `README.md` 테스트 결과 보강 | 프롬프트·seed를 아는 결과로 다시 채울 것 |
+| 낮음 | `README.md` 테스트 결과 보강 | 2026-09-17 작성 완료. 포즈 3종 기록됨 |
 | 낮음 | `main` 과 A/B 비교 | 같은 사진·같은 장면으로 두 브랜치 결과를 나란히 |
 | 낮음 | `USE_GGUF = False` | fp8 원본(4.1GB)과 품질 비교 |
 
@@ -194,7 +194,7 @@ FLUX.2 klein 용 OpenPose ControlNet이 2026년 9월 기준 아직 없다.
 
 | 방향 | 무엇을 | 왜 |
 | --- | --- | --- |
-| **드라이브 → C** | `outputs/` | Colab이 결과를 드라이브에 쓴다. 깃허브에 올리려면 C로 가져와야 함 |
+| **드라이브 → C** | `samples/` 의 `output_*.png` | Colab이 결과를 드라이브에 쓴다. 깃허브에 올리려면 C로 가져와야 함 |
 | **C → 드라이브** | `samples/` | 새 참조 사진을 C에만 넣으면 **Colab에서 보이지 않는다** |
 | (선택) **C → 드라이브** | `pose_tool.ipynb`, `*.md` | VS Code로 C에서 여는 한 불필요 |
 
@@ -202,9 +202,9 @@ FLUX.2 klein 용 OpenPose ControlNet이 2026년 9월 기준 아직 없다.
 
 ```powershell
 $src = Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -ne 'C' } |
-       ForEach-Object { Join-Path $_.Root 'Aiffel_Work\pose-image-tool\outputs' } |
+       ForEach-Object { Join-Path $_.Root 'Aiffel_Work\pose-image-tool\samples' } |
        Where-Object { Test-Path $_ } | Select-Object -First 1
-Copy-Item "$src\*" 'C:\Aiffel_Work\pose-image-tool\outputs\' -Force
+Copy-Item "$src\output_*.png" 'C:\Aiffel_Work\pose-image-tool\samples\' -Force
 ```
 
 **새 사진 넣기 (C → 드라이브)**
@@ -246,7 +246,7 @@ Copy-Item 'C:\Aiffel_Work\pose-image-tool\samples\*' "$dst\" -Force
 | `POSE_STRICTNESS` | `"normal"` | 자세 엄격도. `strict` / `normal` / `loose` |
 | `SEED` | 12345 | 같은 값 = 같은 그림 |
 
-결과는 `outputs/output_01.png` 처럼 **사진 번호만으로** 저장된다.
+결과는 `samples/output_01.png` 처럼 **사진 번호만으로** 저장된다. 참조 사진과 같은 폴더에 쌓인다.
 번호는 STEP 3-1의 `PICK` 을 따라간다 (`PICK = 0` → `output_01`).
 같은 이름이 있으면 `-1`, `-2` 가 붙어 덮어쓰지 않는다.
 이름에 설정이 없으므로 9-1이 재현용 값을 화면에 찍는다 — **그 줄을 `prompts.md` 로 옮길 것.**
@@ -269,6 +269,8 @@ Copy-Item 'C:\Aiffel_Work\pose-image-tool\samples\*' "$dst\" -Force
 | `없는 부품: ['UnetLoaderGGUF']` | GGUF 커스텀 노드 미설치 | STEP 1-1 → 6-3 순서로 재실행 |
 | 새 사진이 STEP 3-1 목록에 안 뜸 | C에만 넣고 드라이브에 안 넣음 | 위 7절의 `C → 드라이브` 명령 실행 |
 | 드라이브 경로를 못 찾음 | **드라이브 문자가 바뀜** (`G:` → `X:`) | 문자를 적지 말고 7절의 찾기 명령을 쓸 것 |
+| `NameError: name 'os' is not defined` (3-0 / 3-1) | **런타임이 끊겨 커널이 새로 떴다.** 모두 실행은 이전 세션 것 | STEP 1부터 다시 실행. 두 셀은 자체 import 하도록 **수정됨** |
+| 결과물이 STEP 3-1 참조 사진 목록에 섞여 나옴 | 결과가 `samples/` 에 함께 쌓임 | `output_` 으로 시작하는 파일은 후보에서 제외하도록 **수정됨** |
 
 **ComfyUI 로그 보는 법** — 새 셀에 `print(open("/content/comfyui.log").read()[-3000:])`
 
