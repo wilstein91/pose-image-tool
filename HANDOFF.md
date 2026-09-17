@@ -1,7 +1,8 @@
-# 작업 인수인계 — `vFLUX2` 브랜치 (2026-09-17 저녁 기준)
+# 작업 인수인계 (2026-09-17 저녁 기준)
 
 집이나 다른 컴퓨터에서 **이어서 작업하기 위한 메모**입니다.
-`main`(Stable Diffusion 1.5 + ControlNet) 기준 메모는 `main` 브랜치의 `HANDOFF.md` 를 보세요.
+현재 버전은 **FLUX.2 [klein] 4B** 기반이며 `main` 과 `vFLUX2` 가 같은 내용입니다.
+이전의 Stable Diffusion 1.5 + ControlNet 버전은 커밋 `e8534f1` 이전 이력에 남아 있습니다.
 
 > **제일 먼저 볼 것** → [3. 집에서 이어서 시작하기](#3-집에서-이어서-시작하기)
 
@@ -44,13 +45,11 @@
 
 ### 3-1. 코드 가져오기
 
-이 브랜치는 **깃허브에 푸시되어 있다.** 집 PC에 이미 레포가 있으면:
+집 PC에 이미 레포가 있으면:
 
 ```bash
 cd <프로젝트 폴더>
-git fetch origin
-git checkout vFLUX2
-git pull
+git pull origin main
 ```
 
 처음 받는 PC라면:
@@ -58,10 +57,9 @@ git pull
 ```bash
 git clone git@github.com:wilstein91/pose-image-tool.git
 cd pose-image-tool
-git checkout vFLUX2
 ```
 
-> 확인: `git branch --show-current` 가 `vFLUX2` 라고 나오면 성공.
+> 확인: `git log --oneline -1` 이 `결과물을 samples/ 로 통합` 커밋이면 최신이다.
 
 ### 3-2. 구글 드라이브 확인
 
@@ -106,12 +104,12 @@ Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -ne 'C' } |
 
 ---
 
-## 5. 이 브랜치에서 바뀐 것 (`main` 대비)
+## 5. 이전 버전(SD 1.5)에서 바뀐 것
 
 생성 모델을 **Stable Diffusion 1.5 + ControlNet → FLUX.2 [klein] 4B** 로 교체했다.
-자세 추출(STEP 0~5)은 `main` 과 거의 같다.
+자세 추출(STEP 0~5)은 예전과 거의 같다.
 
-| 부분 | main | vFLUX2 |
+| 부분 | 이전 (SD 1.5) | 현재 (FLUX.2) |
 | --- | --- | --- |
 | STEP 1 | `diffusers` 설치 | **ComfyUI + ComfyUI-GGUF + `gguf`** (1-1), `controlnet_aux` (1-2) |
 | STEP 4-3 | 8의 배수, 긴 변 512 | **16의 배수**, 긴 변 768 |
